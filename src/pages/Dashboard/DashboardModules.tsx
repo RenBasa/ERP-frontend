@@ -25,11 +25,6 @@ export const DashboardModules: ModuleInterface[] = [
     route: '/order',
     icon: <NoteAltOutlinedIcon className="text-primary" style={iconStyle} />,
   },
-  {
-    title: 'Orden V2',
-    route: '/order-v2',
-    icon: <NoteAltOutlinedIcon className="text-primary" style={iconStyle} />,
-  },
   // {
   //   title: 'Reportes',
   //   route: '/report-dashboard',

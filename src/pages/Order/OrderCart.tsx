@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { createOrder } from '../../services/order.service';
 import { getClients } from '../../services/client.service';
 import { ChangeEvent, useState } from 'react';
+import CancelOrderModal from './CancelOrderModal';
 
 const OrderCart = () => {
   // Hooks
@@ -20,6 +21,7 @@ const OrderCart = () => {
 
   // Use states
   const [selectedClientId, setSelectedClientId] = useState(order.clientId);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   // Use effects
 
   // React query functions
@@ -49,6 +51,19 @@ const OrderCart = () => {
     const clientId = parseInt(event.target.value, 10);
     setSelectedClientId(clientId);
     setClient(clientId);
+  };
+
+  const handleOpenCancelModal = () => {
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+  };
+
+  const handleConfirmCancelOrder = () => {
+    resetOrder();
+    setIsCancelModalOpen(false);
   };
 
   return (
@@ -122,10 +137,15 @@ const OrderCart = () => {
               style={{ backgroundColor: '#F6F6FB', color: 'GrayText' }}
               fullWidth
               disabled={order.orderDetails.length > 0 ? false : true}
-              onClick={resetOrder}
+              onClick={handleOpenCancelModal}
             >
               Cancelar Orden
             </Button>
+            <CancelOrderModal
+              open={isCancelModalOpen}
+              onClose={handleCloseCancelModal}
+              onConfirm={handleConfirmCancelOrder}
+            />
           </>
         ) : (
           <div className="h-full px-4 flex justify-center items-center">
