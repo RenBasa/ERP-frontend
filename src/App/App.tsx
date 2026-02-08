@@ -10,7 +10,6 @@ import Inventory from '../pages/Inventory/Inventory';
 import { useAccessToken } from '../store/auth-store';
 import ProductInventory from '../pages/Inventory/ProductInventory';
 import OrderInventory from '../pages/Order/OrderInventory';
-import OrderInventoryV2 from '../pages/OrderV2/OrderInventoryV2';
 import Categories from '../pages/Categories/Categories';
 import Clients from '../pages/Clients/Clients';
 import Units from '../pages/Units/Units';
@@ -71,14 +70,6 @@ export function App() {
           element={
             <ProtectedRoute>
               <OrderInventory />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/order-v2"
-          element={
-            <ProtectedRoute>
-              <OrderInventoryV2 />
             </ProtectedRoute>
           }
         />
