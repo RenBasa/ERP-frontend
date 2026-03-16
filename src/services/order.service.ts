@@ -34,3 +34,13 @@ export const deleteOrder = async (id: number): Promise<Order> => {
   const response = await AxiosERPInstance.delete(`/order/${id}/details`);
   return response.data;
 };
+
+export const addPayment = async (orderId: number, amount: number): Promise<Order> => {
+  const response = await AxiosERPInstance.patch(`/order/${orderId}/payment`, { amount });
+  return response.data;
+};
+
+export const getUpfrontOrders = async (): Promise<Order[]> => {
+  const response = await AxiosERPInstance.get(`/order/upfront`);
+  return response.data;
+};
