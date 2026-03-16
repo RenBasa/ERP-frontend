@@ -9,17 +9,20 @@ import { toast } from 'react-toastify';
 import { createOrder } from '../../services/order.service';
 import { getClients } from '../../services/client.service';
 import { ChangeEvent, useState } from 'react';
+import CancelOrderModal from './CancelOrderModal';
 
 const OrderCart = () => {
   // Hooks
   // const queryClient = useQueryClient();
   const setClient = useCartStore((state) => state.setClient);
+  const setAmountPaid = useCartStore((state) => state.setAmountPaid);
   const order = useCartStore((state) => state.order);
   const orderStatus = useCartStore((state) => state.order.status);
   const resetOrder = useCartStore((state) => state.reset);
 
   // Use states
   const [selectedClientId, setSelectedClientId] = useState(order.clientId);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   // Use effects
 
   // React query functions
@@ -49,6 +52,19 @@ const OrderCart = () => {
     const clientId = parseInt(event.target.value, 10);
     setSelectedClientId(clientId);
     setClient(clientId);
+  };
+
+  const handleOpenCancelModal = () => {
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+  };
+
+  const handleConfirmCancelOrder = () => {
+    resetOrder();
+    setIsCancelModalOpen(false);
   };
 
   return (
@@ -107,6 +123,18 @@ const OrderCart = () => {
                 disabled
               />
             </span>
+            <NumericFormat
+              customInput={TextField}
+              prefix="$"
+              thousandSeparator
+              decimalScale={2}
+              label="Anticipo"
+              fullWidth
+              variant="outlined"
+              value={order.amountPaid || ''}
+              onValueChange={(values) => setAmountPaid(values.floatValue ?? 0)}
+              aria-label="Monto del anticipo"
+            />
             <Button
               onClick={handleOnOrderSubmit}
               variant="contained"
@@ -122,10 +150,15 @@ const OrderCart = () => {
               style={{ backgroundColor: '#F6F6FB', color: 'GrayText' }}
               fullWidth
               disabled={order.orderDetails.length > 0 ? false : true}
-              onClick={resetOrder}
+              onClick={handleOpenCancelModal}
             >
               Cancelar Orden
             </Button>
+            <CancelOrderModal
+              open={isCancelModalOpen}
+              onClose={handleCloseCancelModal}
+              onConfirm={handleConfirmCancelOrder}
+            />
           </>
         ) : (
           <div className="h-full px-4 flex justify-center items-center">
