@@ -15,6 +15,7 @@ const OrderCart = () => {
   // Hooks
   // const queryClient = useQueryClient();
   const setClient = useCartStore((state) => state.setClient);
+  const setAmountPaid = useCartStore((state) => state.setAmountPaid);
   const order = useCartStore((state) => state.order);
   const orderStatus = useCartStore((state) => state.order.status);
   const resetOrder = useCartStore((state) => state.reset);
@@ -122,6 +123,18 @@ const OrderCart = () => {
                 disabled
               />
             </span>
+            <NumericFormat
+              customInput={TextField}
+              prefix="$"
+              thousandSeparator
+              decimalScale={2}
+              label="Anticipo"
+              fullWidth
+              variant="outlined"
+              value={order.amountPaid || ''}
+              onValueChange={(values) => setAmountPaid(values.floatValue ?? 0)}
+              aria-label="Monto del anticipo"
+            />
             <Button
               onClick={handleOnOrderSubmit}
               variant="contained"

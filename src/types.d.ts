@@ -92,6 +92,7 @@ interface Order {
   clientId?: number;
   status: OrderStatus;
   total: number;
+  amountPaid?: number;
   orderDetails: OrderDetail[];
   user?: User;
 }

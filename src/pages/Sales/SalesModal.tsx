@@ -96,6 +96,28 @@ const CategoriesModal: FC<CategoriesModalProps> = ({
                   displayType="text"
                   disabled
                 />
+                {orderQuery.data.amountPaid != null && orderQuery.data.amountPaid > 0 && (
+                  <div className="flex flex-row gap-6 mt-2">
+                    <span className="text-xl">
+                      Anticipo:{' '}
+                      <NumericFormat
+                        value={orderQuery.data.amountPaid.toFixed(2)}
+                        prefix="$"
+                        thousandSeparator
+                        displayType="text"
+                      />
+                    </span>
+                    <span className="text-xl">
+                      Restante:{' '}
+                      <NumericFormat
+                        value={(orderQuery.data.total - (orderQuery.data.amountPaid ?? 0)).toFixed(2)}
+                        prefix="$"
+                        thousandSeparator
+                        displayType="text"
+                      />
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </DialogContent>

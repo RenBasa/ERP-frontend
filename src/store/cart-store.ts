@@ -7,6 +7,7 @@ interface cartStoreActions {
   // createNewOrder: (name: string, location: string, wholesale: boolean) => void;
   setStatus: (status: OrderStatus) => void;
   setClient: (clientId: number) => void;
+  setAmountPaid: (amountPaid: number) => void;
   addOrderDetail: (orderDetail: OrderDetail) => void;
   removeOrderDetail: (index: number) => void;
   updateOrderDetailQuantity: (index: number, quantity: number) => void;
@@ -16,6 +17,7 @@ const initialState: cartStoreState = {
   order: {
     status: 'NOT STARTED',
     total: 0,
+    amountPaid: 0,
     clientId: 1,
     orderDetails: [],
   },
@@ -32,6 +34,15 @@ export const useCartStore = create<cartStoreState & cartStoreActions>((set) => (
       order: {
         ...state.order,
         clientId: clientId,
+      },
+    }));
+  },
+  setAmountPaid: (amountPaid: number) => {
+    set((state) => ({
+      ...state,
+      order: {
+        ...state.order,
+        amountPaid,
       },
     }));
   },
