@@ -4,15 +4,7 @@ import SystemSettingsModules from './SystemSettingsModules';
 import { useNavigate } from 'react-router-dom';
 
 const SystemConfiguration = () => {
-  // Hooks
   const navigateTo = useNavigate();
-  // Use states
-
-  // React query functions
-
-  // React Query Mutations
-
-  // handlers and helper funcionts
 
   return (
     <>
