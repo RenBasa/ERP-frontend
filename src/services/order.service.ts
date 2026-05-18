@@ -1,8 +1,8 @@
 import { AxiosERPInstance } from '../Lib/axiosInstance.config';
 
 // List orders
-export const getOrders = async (): Promise<Order[]> => {
-  const response = await AxiosERPInstance.get(`/order`);
+export const getOrders = async (cursor?: number): Promise<Order[]> => {
+  const response = await AxiosERPInstance.get(`/order${cursor ? `?cursor=${cursor}` : ''}`);
   return response.data;
 };
 
@@ -40,7 +40,7 @@ export const addPayment = async (orderId: number, amount: number): Promise<Order
   return response.data;
 };
 
-export const getUpfrontOrders = async (): Promise<Order[]> => {
-  const response = await AxiosERPInstance.get(`/order/upfront`);
+export const getUpfrontOrders = async (cursor?: number): Promise<Order[]> => {
+  const response = await AxiosERPInstance.get(`/order/upfront${cursor ? `?cursor=${cursor}` : ''}`);
   return response.data;
 };
