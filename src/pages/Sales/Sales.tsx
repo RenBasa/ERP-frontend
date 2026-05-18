@@ -1,7 +1,7 @@
 import { Button, IconButton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import InfoBar from '../../layouts/InfoBar/InfoBar';
 import { AttachMoney, DeleteOutline, Send, Sync, Visibility } from '@mui/icons-material';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CompactTable } from '@table-library/react-table-library/compact';
 import { useTheme } from '@table-library/react-table-library/theme';
 import { DEFAULT_OPTIONS, getTheme } from '@table-library/react-table-library/material-ui';
@@ -14,6 +14,7 @@ import PaymentModal from './PaymentModal';
 import { formatDate } from '../../utils/orderUtil';
 import StatusComponent from '../../components/StatusComponent/StatusComponent';
 import CustomLoading from '../../components/CustomLoading/CustomLoading';
+import Pagination from '../../components/Pagination/Pagination';
 
 type modes = 'Order' | 'Send' | 'Delete' | '';
 type TabValue = 'all' | 'upfront';
@@ -44,17 +45,21 @@ const Sales = () => {
   const [activeTab, setActiveTab] = useState<TabValue>('all');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<Order>(orderModel);
+  const [prevPage, setPrevPage] = useState<number[] | []>([]);
+  const [cursor, setCursor] = useState<number | undefined>();
 
   const ordersQuery = useQuery({
-    queryKey: ['orders'],
-    queryFn: getOrders,
+    queryKey: ['orders', cursor],
+    queryFn: () => getOrders(cursor),
+    placeholderData: keepPreviousData,
     refetchInterval: 15000,
   });
 
   const upfrontQuery = useQuery({
-    queryKey: ['orders-upfront'],
-    queryFn: getUpfrontOrders,
+    queryKey: ['orders-upfront', cursor],
+    queryFn: () => getUpfrontOrders(cursor),
     enabled: activeTab === 'upfront',
+    placeholderData: keepPreviousData,
     refetchInterval: 15000,
   });
 
@@ -154,8 +159,40 @@ const Sales = () => {
     activeQuery.refetch();
   };
 
+  const resetPagination = () => {
+    setCursor(undefined);
+    setPrevPage([]);
+  };
+
   const handleTabChange = (_: React.MouseEvent<HTMLElement>, newValue: TabValue | null) => {
-    if (newValue) setActiveTab(newValue);
+    if (newValue) {
+      setActiveTab(newValue);
+      resetPagination();
+    }
+  };
+
+  const handleOnPrevClick = () => {
+    if (!activeQuery.isPlaceholderData && activeQuery.data) {
+      setCursor(handleRemovePrevPageCursor);
+    }
+  };
+
+  const handleOnNextClick = () => {
+    if (!activeQuery.isPlaceholderData && activeQuery.data?.length) {
+      const nextId = activeQuery.data[activeQuery.data.length - 1]?.id;
+      const firstId = activeQuery.data[0]?.id;
+      if (nextId) {
+        setPrevPage((current) => (firstId ? [...current, firstId] : current));
+        setCursor(nextId);
+      }
+    }
+  };
+
+  const handleRemovePrevPageCursor = () => {
+    const newItems = [...prevPage];
+    const previousCursor = newItems.pop();
+    setPrevPage(newItems);
+    return previousCursor;
   };
 
   const handleOpenPaymentModal = (order: Order) => {
@@ -228,6 +265,12 @@ const Sales = () => {
         ) : (
           activeQuery?.data && <CompactTable columns={columns} data={data} theme={theme} />
         )}
+        <Pagination
+          isPlaceholderData={activeQuery.isPlaceholderData}
+          prevPage={prevPage}
+          onPrevClick={handleOnPrevClick}
+          onNextClick={handleOnNextClick}
+        />
       </div>
       <SalesModal
         mode={modalMode}
