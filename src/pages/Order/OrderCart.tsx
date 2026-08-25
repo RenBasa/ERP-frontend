@@ -8,7 +8,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { createOrder } from '../../services/order.service';
 import { getClients } from '../../services/client.service';
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, useRef, useState } from 'react';
 import CancelOrderModal from './CancelOrderModal';
 
 const OrderCart = () => {
@@ -23,6 +23,7 @@ const OrderCart = () => {
   // Use states
   const [selectedClientId, setSelectedClientId] = useState(order.clientId);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const isSubmittingRef = useRef(false);
   // Use effects
 
   // React query functions
@@ -32,19 +33,25 @@ const OrderCart = () => {
   });
 
   // React Query Mutation
-  const { mutate: createOrderMutate } = useMutation({
+  const { mutate: createOrderMutate, isPending: isSubmittingOrder } = useMutation({
     // TODO: Set the status to pending
     mutationFn: (order: Order) => createOrder(order),
 
     onSuccess: () => {
+      isSubmittingRef.current = false;
       resetOrder();
       toast('Orden enviada correctamente');
     },
-    onError: () => toast.error('Error al enviar orden'),
+    onError: () => {
+      isSubmittingRef.current = false;
+      toast.error('Error al enviar orden');
+    },
   });
 
   // handlers and helper funciont
   const handleOnOrderSubmit = () => {
+    if (isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
     createOrderMutate(order);
   };
 
@@ -141,7 +148,7 @@ const OrderCart = () => {
               style={{ backgroundColor: '#900A20' }}
               className=" text-white"
               fullWidth
-              disabled={order.orderDetails.length > 0 ? false : true}
+              disabled={order.orderDetails.length === 0 || isSubmittingOrder}
             >
               Enviar Ticket de Orden
             </Button>
