@@ -8,12 +8,16 @@ export const getOrders = async (cursor?: number): Promise<Order[]> => {
 
 // Create an Order
 export const createOrder = async (order: Order) => {
-  order.orderDetails.forEach((detail) => {
-    delete detail.total;
-    delete detail.unitName;
-    delete detail.productName;
-  });
-  const response = await AxiosERPInstance.post('/order', order);
+  const payload: Order = {
+    ...order,
+    orderDetails: order.orderDetails.map((detail) => ({
+      quantity: detail.quantity,
+      price: detail.price,
+      unitId: detail.unitId,
+      productId: detail.productId,
+    })),
+  };
+  const response = await AxiosERPInstance.post('/order', payload);
   return response;
 };
 
