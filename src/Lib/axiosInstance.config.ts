@@ -1,18 +1,12 @@
 import axios from 'axios';
-import { getAccessToken } from '../store/auth-store';
+import { toast } from 'react-toastify';
+import { getAccessToken, getActions } from '../store/auth-store';
 import { logoutAuth } from '../utils/auth-util';
 
 const backend = import.meta.env.VITE_BACKEND_URL;
-// const getBearerToken = () => {
-//   const user = useUser();
-//   return user.accessToken;
-// };
 
 const AxiosERPInstance = axios.create({
   baseURL: backend,
-  // headers: {
-  //   Authorization: `Bearer ${getBearerToken()}`,
-  // },
 });
 
 AxiosERPInstance.interceptors.request.use((config) => {
@@ -23,15 +17,23 @@ AxiosERPInstance.interceptors.request.use((config) => {
   return config;
 });
 
-// AxiosERPInstance.interceptors.response.use(
-//   (response) => response,
-//   (error) => {
-//     if (error?.response?.status === 401) {
-//       logoutAuth();
-//       window.location.replace('/login');
-//     }
-//     return Promise.reject(error);
-//   },
-// );
-//
+AxiosERPInstance.interceptors.response.use(
+  (response) => {
+    const refreshedToken = response.headers['x-refreshed-token'];
+    if (refreshedToken) {
+      getActions().setAccessToken(refreshedToken);
+      localStorage.setItem('access_token', refreshedToken);
+    }
+    return response;
+  },
+  (error) => {
+    if (error?.response?.status === 401) {
+      logoutAuth();
+      toast.error('Sesión expirada. Por favor, inicia sesión nuevamente.');
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
+    return Promise.reject(error);
+  },
+);
+
 export { AxiosERPInstance };
