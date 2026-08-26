@@ -1,12 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { changePassword, createUser, deleteUser, getUsers, updateUser } from '../../services/user.service';
+import { changePassword, createUser, getUsers, updateUser } from '../../services/user.service';
 import { toast } from 'react-toastify';
 import { Button, IconButton, TextField } from '@mui/material';
 import { useState } from 'react';
 import { CompactTable } from '@table-library/react-table-library/compact';
 import { useTheme } from '@table-library/react-table-library/theme';
 import { DEFAULT_OPTIONS, getTheme } from '@table-library/react-table-library/material-ui';
-import { Add, DeleteOutline, EditOutlined, PasswordOutlined } from '@mui/icons-material';
+import { Add, EditOutlined, PasswordOutlined } from '@mui/icons-material';
 import UsersModal from './UsersModal';
 import InfoBar from '../../layouts/InfoBar/InfoBar';
 import CustomLoading from '../../components/CustomLoading/CustomLoading';
@@ -18,7 +18,7 @@ const userModel: UserTable = {
   last_name: '',
   rol: 'Admin',
 };
-type modes = 'Add' | 'Edit' | 'Delete' | 'Update' | '';
+type modes = 'Add' | 'Edit' | 'Update' | '';
 const Users = () => {
   const [search, setSearch] = useState('');
   const [openModal, setOpenModal] = useState(false);
@@ -44,15 +44,6 @@ const Users = () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: () => toast.error('Error al crear un nuevo usuario'),
-  });
-
-  const { mutate: deleteUserMutete } = useMutation({
-    mutationFn: (id: number) => deleteUser(id),
-    onSuccess: () => {
-      handleOnCloseModal();
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-    },
-    onError: () => toast.error('Error al borrar el usuario usuario'),
   });
 
   const { mutate: changePasswordMutate } = useMutation({
@@ -83,7 +74,7 @@ const Users = () => {
     { label: 'Nombre del Usuario', renderCell: (item) => item.username },
     { label: 'Nombre', renderCell: (item) => item.first_name },
     { label: 'Apellido', renderCell: (item) => item.last_name },
-    { label: 'Rol', renderCell: (item) => item.rol },
+    { label: 'Rol', renderCell: (item) => (item.active === false ? `${item.rol} (Inactivo)` : item.rol) },
     {
       label: 'Acciones',
       renderCell: (item) => (
@@ -93,9 +84,6 @@ const Users = () => {
           </IconButton>
           <IconButton onClick={() => handleOnEdit(item)}>
             <EditOutlined />
-          </IconButton>
-          <IconButton onClick={() => handleOnDelete(item.id)}>
-            <DeleteOutline />
           </IconButton>
         </div>
       ),
@@ -121,20 +109,10 @@ const Users = () => {
     handleOnOpenModal();
   };
 
-  const handleOnDelete = (id: number) => {
-    setMode('Delete');
-    setUserId(id);
-    handleOnOpenModal();
-  };
-
   const handleOnEdit = (user: UserTable) => {
     setMode('Edit');
     setUserModelState(user);
     handleOnOpenModal();
-  };
-
-  const handleOnDeleteConfirm = (id: number) => {
-    deleteUserMutete(id);
   };
 
   const handleOnEditAccept = (user: UserTable) => {
@@ -199,7 +177,6 @@ const Users = () => {
         onAccept={onSubmit}
         onAcceptEdit={handleOnEditAccept}
         onClose={handleOnCloseModal}
-        onDeleteAccept={handleOnDeleteConfirm}
         id={userId}
         user={userModelState}
         userUserName={userUsername}

@@ -5,6 +5,7 @@ interface User {
   last_name: string;
   rol: string;
   password?: string;
+  active?: boolean;
 }
 interface UserTable {
   id: number;
@@ -12,6 +13,7 @@ interface UserTable {
   first_name: string;
   last_name: string;
   rol: string;
+  active?: boolean;
 }
 type Column<T extends TableNode> = {
   label: string;

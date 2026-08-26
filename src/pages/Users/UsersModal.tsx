@@ -1,4 +1,4 @@
-import { Button, DialogActions, DialogContent, MenuItem, Select, TextField } from '@mui/material';
+import { Button, Checkbox, DialogActions, DialogContent, FormControlLabel, MenuItem, Select, TextField } from '@mui/material';
 import ModalTemplate from '../../components/ModalTemplate/ModalTemplate';
 import { useFormik } from 'formik';
 
@@ -9,17 +9,15 @@ interface ImageModalProps {
   user: UserTable;
   userUserName?: string;
   onClose: () => void;
-  onDeleteAccept: (id: number) => void;
   onChangePasswordAccept: (id: number, password: string) => void;
   onAccept: (values: User) => void;
   onAcceptEdit: (values: UserTable) => void;
 }
-type modes = 'Add' | 'Edit' | 'Delete' | 'Update' | '';
+type modes = 'Add' | 'Edit' | 'Update' | '';
 const UsersModal: React.FC<ImageModalProps> = ({
   open,
   modalMode,
   onClose,
-  onDeleteAccept,
   onAccept,
   id,
   user,
@@ -98,13 +96,13 @@ const UsersModal: React.FC<ImageModalProps> = ({
                   />
                   <Select
                     onChange={formikContext.handleChange}
-                    value={formikContext.values.rol ?? 'usuario'}
+                    value={formikContext.values.rol ?? 'user'}
                     label="Role"
                     name="rol"
                     required
                   >
                     <MenuItem value="admin">Admin</MenuItem>
-                    <MenuItem value="usuario">Usuario</MenuItem>
+                    <MenuItem value="user">Usuario</MenuItem>
                   </Select>
                   <TextField
                     onChange={formikContext.handleChange}
@@ -166,6 +164,15 @@ const UsersModal: React.FC<ImageModalProps> = ({
                     <MenuItem value="admin">Admin</MenuItem>
                     <MenuItem value="user">User</MenuItem>
                   </TextField>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={formikEdit.values.active !== false}
+                        onChange={(event) => formikEdit.setFieldValue('active', event.target.checked)}
+                      />
+                    }
+                    label="Usuario activo (revocar acceso desmarcando, sin borrar su historial)"
+                  />
                 </div>
               </DialogContent>
               <DialogActions>
@@ -176,21 +183,6 @@ const UsersModal: React.FC<ImageModalProps> = ({
           </ModalTemplate>
         </>
       );
-      break;
-    case 'Delete':
-      if (id) {
-        modalContent = (
-          <>
-            <ModalTemplate open={open} title="Borrar Usuario" handleOnClose={onClose}>
-              <DialogContent>Seguro que quieres Borrar el usuario?</DialogContent>
-              <DialogActions>
-                <Button onClick={onClose}>Cancelar</Button>
-                <Button onClick={() => onDeleteAccept(id)}>Aceptar</Button>
-              </DialogActions>
-            </ModalTemplate>
-          </>
-        );
-      }
       break;
     case 'Update':
       modalContent = (
