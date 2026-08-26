@@ -21,7 +21,6 @@ const OrderCart = () => {
   const resetOrder = useCartStore((state) => state.reset);
 
   // Use states
-  const [selectedClientId, setSelectedClientId] = useState(order.clientId);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const isSubmittingRef = useRef(false);
   // Use effects
@@ -57,7 +56,6 @@ const OrderCart = () => {
 
   const handleClientChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const clientId = parseInt(event.target.value, 10);
-    setSelectedClientId(clientId);
     setClient(clientId);
   };
 
@@ -84,7 +82,7 @@ const OrderCart = () => {
           select
           label="Cliente"
           variant="outlined"
-          value={selectedClientId}
+          value={order.clientId}
         >
           {clientsQuery.data?.map((client) => (
             <MenuItem key={client.id} value={client.id}>
