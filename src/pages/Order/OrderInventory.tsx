@@ -169,7 +169,12 @@ const OrderInventory = () => {
             onPrevClick={handleOnPrevClick}
             onNextClick={handleOnNextClick}
           />
-          <FloatingProductBar product={selectedProduct} onAdd={handleAddDetailFromBar} onClear={handleClearBar} />
+          <FloatingProductBar
+            key={selectedProduct?.id ?? 'none'}
+            product={selectedProduct}
+            onAdd={handleAddDetailFromBar}
+            onClear={handleClearBar}
+          />
         </>
       )}
       <SwipeableDrawer

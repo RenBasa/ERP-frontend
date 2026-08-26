@@ -1,5 +1,5 @@
 import { MenuItem, Skeleton, TextField } from '@mui/material';
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import { totalHelper } from '../../utils/orderUtil';
 
 export interface FloatingProductBarProps {
@@ -15,27 +15,17 @@ const currencyFormatter = new Intl.NumberFormat('es-MX', {
 });
 
 const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onClear }) => {
-  const [quantity, setQuantity] = useState<number>(0);
-  const [selectedUnitId, setSelectedUnitId] = useState<number | undefined>(undefined);
-  const [selectedUnitName, setSelectedUnitName] = useState<string>('');
-  const [unitPrice, setUnitPrice] = useState<number>(0);
+  // Initialized straight from `product` since this component is remounted
+  // (via a `key` on product id in the parent) whenever the selected product
+  // changes, rather than reusing one instance and resyncing state in an
+  // effect — that pattern let a previous product's unit selection visually
+  // stick around after switching, even though the underlying value was
+  // already correct.
+  const [quantity, setQuantity] = useState<number>(product ? 1 : 0);
+  const [selectedUnitId, setSelectedUnitId] = useState<number | undefined>(product?.unitId);
+  const [selectedUnitName, setSelectedUnitName] = useState<string>(product?.unit?.name || '');
+  const [unitPrice, setUnitPrice] = useState<number>(product?.priceUnit || 0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (!product) {
-      setQuantity(0);
-      setSelectedUnitId(undefined);
-      setSelectedUnitName('');
-      setUnitPrice(0);
-      setIsSubmitting(false);
-      return;
-    }
-    // Initialize selection with product's base unit
-    setQuantity(1);
-    setSelectedUnitId(product.unitId);
-    setSelectedUnitName(product.unit?.name || '');
-    setUnitPrice(product.priceUnit);
-  }, [product]);
 
   const total = useMemo(() => {
     if (!product || !selectedUnitId) return 0;
