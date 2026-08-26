@@ -4,6 +4,7 @@ import Dashboard from '../pages/Dashboard/Dashboard';
 import Navbar from '../layouts/Navbar/Navbar';
 import Users from '../pages/Users/Users';
 import ProtectedRoute from '../components/ProtectedRoute/ProtectedRoute';
+import AdminRoute from '../components/ProtectedRoute/AdminRoute';
 import AuthWatcher from '../components/ProtectedRoute/AuthWatcher';
 import PublicRoute from '../components/ProtectedRoute/PublicRoute';
 import Inventory from '../pages/Inventory/Inventory';
@@ -45,7 +46,9 @@ export function App() {
           path="/users"
           element={
             <ProtectedRoute>
-              <Users />
+              <AdminRoute>
+                <Users />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -53,7 +56,9 @@ export function App() {
           path="/inventory"
           element={
             <ProtectedRoute>
-              <Inventory />
+              <AdminRoute>
+                <Inventory />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -61,7 +66,9 @@ export function App() {
           path="/inventory/:productId"
           element={
             <ProtectedRoute>
-              <ProductInventory />
+              <AdminRoute>
+                <ProductInventory />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -77,7 +84,9 @@ export function App() {
           path="/sales"
           element={
             <ProtectedRoute>
-              <Sales />
+              <AdminRoute>
+                <Sales />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -85,7 +94,9 @@ export function App() {
           path="/system-configuration"
           element={
             <ProtectedRoute>
-              <SystemConfiguration />
+              <AdminRoute>
+                <SystemConfiguration />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -93,7 +104,9 @@ export function App() {
           path="/categories"
           element={
             <ProtectedRoute>
-              <Categories />
+              <AdminRoute>
+                <Categories />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -101,7 +114,9 @@ export function App() {
           path="/clients"
           element={
             <ProtectedRoute>
-              <Clients />
+              <AdminRoute>
+                <Clients />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
@@ -109,7 +124,9 @@ export function App() {
           path="/units"
           element={
             <ProtectedRoute>
-              <Units />
+              <AdminRoute>
+                <Units />
+              </AdminRoute>
             </ProtectedRoute>
           }
         />
