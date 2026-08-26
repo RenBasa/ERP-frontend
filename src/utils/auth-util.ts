@@ -1,4 +1,4 @@
-import { getAccessToken, getActions } from '../store/auth-store';
+import { getAccessToken, getActions, getRole } from '../store/auth-store';
 
 const { setAccessToken, setUserInformation } = getActions();
 
@@ -23,6 +23,11 @@ const isLoggedIn = () => {
   return isTokenValid(accessToken);
 };
 
+const isAdmin = () => {
+  const role = getRole() || localStorage.getItem('user_role');
+  return role === 'admin';
+};
+
 const logoutAuth = () => {
   setAccessToken(undefined);
   setUserInformation(undefined);
@@ -32,4 +37,4 @@ const logoutAuth = () => {
   localStorage.removeItem('user_role');
 };
 
-export { isLoggedIn, logoutAuth, isTokenValid };
+export { isLoggedIn, logoutAuth, isTokenValid, isAdmin };
