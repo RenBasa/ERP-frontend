@@ -2,7 +2,19 @@
 @tailwind components;
  body {
     background-color: #F6F6FB;
-}@tailwind utilities;
+}
+/* On mobile Chrome (and most non-Samsung browsers), an accidental
+   overscroll-at-top gesture while scrolling triggers the browser's native
+   pull-to-refresh, forcing a full page reload mid-task — this wipes any
+   in-progress cart and, since the SPA has to boot from scratch, briefly
+   drops the user back to a blank/loading state that reads as being logged
+   out. `contain` stops the scroll gesture from propagating past this page
+   to trigger that native browser behavior, without disabling the app's
+   own internal scrolling. */
+html, body {
+    overscroll-behavior-y: contain;
+}
+@tailwind utilities;
 .prodGridContainer {
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
 }
