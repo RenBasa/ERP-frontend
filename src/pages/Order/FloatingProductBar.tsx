@@ -1,6 +1,6 @@
-import { MenuItem, Skeleton, TextField } from '@mui/material';
+import { MenuItem, Skeleton, TextField, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { FC, useMemo, useState } from 'react';
-import { totalHelper } from '../../utils/orderUtil';
+import { quantityFromAmountHelper, totalHelper } from '../../utils/orderUtil';
 
 export interface FloatingProductBarProps {
   product: Product | null;
@@ -27,10 +27,23 @@ const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onCle
   const [unitPrice, setUnitPrice] = useState<number>(product?.priceUnit || 0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
+  // "Cantidad" (enter a quantity, the usual flow) vs "Monto" (enter a peso
+  // amount — e.g. a customer asks for "$50 of this" instead of a weight —
+  // and the quantity is derived from it). Whichever mode is active drives
+  // `quantity`, so everything downstream (total, handleAdd) is unchanged.
+  const [inputMode, setInputMode] = useState<'quantity' | 'amount'>('quantity');
+  const [amount, setAmount] = useState<number>(0);
+
+  const effectiveQuantity = useMemo(() => {
+    if (inputMode === 'quantity' || !selectedUnitId || !product) return quantity;
+    return quantityFromAmountHelper(amount, unitPrice, selectedUnitId, product);
+  }, [inputMode, quantity, amount, unitPrice, selectedUnitId, product]);
+
   const total = useMemo(() => {
     if (!product || !selectedUnitId) return 0;
+    if (inputMode === 'amount') return amount;
     return totalHelper(quantity, unitPrice, selectedUnitId, product);
-  }, [product, quantity, unitPrice, selectedUnitId]);
+  }, [product, quantity, unitPrice, selectedUnitId, inputMode, amount]);
 
   const handleDecrease = () => {
     setQuantity((q) => (q > 0 ? q - 1 : 0));
@@ -58,15 +71,24 @@ const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onCle
     setUnitPrice(newUnitPrice);
   };
 
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    if (Number.isNaN(value) || value < 0) {
+      setAmount(0);
+      return;
+    }
+    setAmount(value);
+  };
+
   const handleAdd = async () => {
     if (!product || !selectedUnitId) return;
     setIsSubmitting(true);
     const detail: OrderDetail = {
-      quantity,
+      quantity: effectiveQuantity,
       price: unitPrice,
       unitId: selectedUnitId,
       productId: product.id || 0,
-      total: totalHelper(quantity, unitPrice, selectedUnitId, product) || 0,
+      total: totalHelper(effectiveQuantity, unitPrice, selectedUnitId, product) || 0,
       productName: product.name,
       unitName: selectedUnitName,
     };
@@ -101,45 +123,84 @@ const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onCle
               </div>
 
               {/* Quantity controls */}
-              <div className="flex items-center gap-2 lg:col-span-3">
-                <button
-                  className="h-10 w-10 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-label="Disminuir cantidad"
-                  tabIndex={0}
-                  onClick={handleDecrease}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleDecrease();
-                    }
-                  }}
+              <div className="flex flex-col gap-1 lg:col-span-3">
+                <ToggleButtonGroup
+                  value={inputMode}
+                  exclusive
+                  size="small"
+                  onChange={(_e, next) => next && setInputMode(next)}
+                  aria-label="Modo de entrada"
                 >
-                  -
-                </button>
-                <input
-                  className="h-10 w-20 rounded-md border border-slate-300 px-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="any"
-                  aria-label="Cantidad"
-                  value={quantity}
-                  onChange={handleQuantityChange}
-                />
-                <button
-                  className="h-10 w-10 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  aria-label="Aumentar cantidad"
-                  tabIndex={0}
-                  onClick={handleIncrease}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleIncrease();
-                    }
-                  }}
-                >
-                  +
-                </button>
+                  <ToggleButton value="quantity" aria-label="Por cantidad">
+                    Cantidad
+                  </ToggleButton>
+                  <ToggleButton value="amount" aria-label="Por monto">
+                    $ Monto
+                  </ToggleButton>
+                </ToggleButtonGroup>
+
+                {inputMode === 'quantity' ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="h-10 w-10 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      aria-label="Disminuir cantidad"
+                      tabIndex={0}
+                      onClick={handleDecrease}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleDecrease();
+                        }
+                      }}
+                    >
+                      -
+                    </button>
+                    <input
+                      className="h-10 w-20 rounded-md border border-slate-300 px-3 text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step="any"
+                      aria-label="Cantidad"
+                      value={quantity}
+                      onChange={handleQuantityChange}
+                    />
+                    <button
+                      className="h-10 w-10 rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      aria-label="Aumentar cantidad"
+                      tabIndex={0}
+                      onClick={handleIncrease}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleIncrease();
+                        }
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-1">
+                    <input
+                      className="h-10 w-full rounded-md border border-slate-300 px-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      step="any"
+                      aria-label="Monto en pesos"
+                      placeholder="$ Monto"
+                      value={amount || ''}
+                      onChange={handleAmountChange}
+                    />
+                    {/* Feedback so staff can confirm the weight/quantity
+                        before adding — the amount alone doesn't tell you
+                        that "$50" turned out to be 0.38 kg. */}
+                    <span className="text-xs text-slate-500">
+                      ≈ {effectiveQuantity.toFixed(3)} {selectedUnitName}
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Unit selector */}
@@ -189,7 +250,7 @@ const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onCle
                   className="rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
                   aria-label="Agregar al carrito"
                   onClick={handleAdd}
-                  disabled={!product || quantity <= 0 || !selectedUnitId}
+                  disabled={!product || effectiveQuantity <= 0 || !selectedUnitId}
                 >
                   Agregar
                 </button>
