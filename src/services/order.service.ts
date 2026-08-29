@@ -48,3 +48,9 @@ export const getUpfrontOrders = async (cursor?: number): Promise<Order[]> => {
   const response = await AxiosERPInstance.get(`/order/upfront${cursor ? `?cursor=${cursor}` : ''}`);
   return response.data;
 };
+
+// Recompute and persist an order's total after its line items change
+export const updateOrderTotal = async (id: number, total: number): Promise<Order> => {
+  const response = await AxiosERPInstance.patch(`/order/${id}`, { total });
+  return response.data;
+};

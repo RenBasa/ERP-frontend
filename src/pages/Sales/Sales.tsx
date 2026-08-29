@@ -1,6 +1,6 @@
 import { Button, IconButton, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import InfoBar from '../../layouts/InfoBar/InfoBar';
-import { AttachMoney, DeleteOutline, Send, Sync, Visibility } from '@mui/icons-material';
+import { AttachMoney, DeleteOutline, Edit, Send, Sync, Visibility } from '@mui/icons-material';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CompactTable } from '@table-library/react-table-library/compact';
 import { useTheme } from '@table-library/react-table-library/theme';
@@ -11,6 +11,7 @@ import { NumericFormat } from 'react-number-format';
 import { useState } from 'react';
 import SalesModal from './SalesModal';
 import PaymentModal from './PaymentModal';
+import EditOrderModal from './EditOrderModal';
 import { formatDate } from '../../utils/orderUtil';
 import StatusComponent from '../../components/StatusComponent/StatusComponent';
 import CustomLoading from '../../components/CustomLoading/CustomLoading';
@@ -45,6 +46,8 @@ const Sales = () => {
   const [activeTab, setActiveTab] = useState<TabValue>('all');
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   const [paymentOrder, setPaymentOrder] = useState<Order>(orderModel);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editOrder, setEditOrder] = useState<Order>(orderModel);
   const [prevPage, setPrevPage] = useState<number[] | []>([]);
   const [cursor, setCursor] = useState<number | undefined>();
 
@@ -132,6 +135,9 @@ const Sales = () => {
           <IconButton onClick={() => onViewSelect(item)} aria-label="Ver orden">
             <Visibility />
           </IconButton>
+          <IconButton onClick={() => handleOpenEditModal(item)} aria-label="Editar orden">
+            <Edit />
+          </IconButton>
           {item.status !== 'RELEASED' && (
             <IconButton onClick={() => handleOpenPaymentModal(item)} aria-label="Registrar anticipo">
               <AttachMoney />
@@ -205,7 +211,17 @@ const Sales = () => {
     setPaymentModalOpen(false);
   };
 
-  const handlePaymentSuccess = () => {
+  const handleOpenEditModal = (order: Order) => {
+    setEditOrder(order);
+    setEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditOrder(orderModel);
+    setEditModalOpen(false);
+  };
+
+  const handleOrderMutationSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['orders'] });
     queryClient.invalidateQueries({ queryKey: ['orders-upfront'] });
   };
@@ -285,7 +301,13 @@ const Sales = () => {
         open={paymentModalOpen}
         order={paymentOrder}
         onClose={handleClosePaymentModal}
-        onSuccess={handlePaymentSuccess}
+        onSuccess={handleOrderMutationSuccess}
+      />
+      <EditOrderModal
+        open={editModalOpen}
+        order={editOrder}
+        onClose={handleCloseEditModal}
+        onSuccess={handleOrderMutationSuccess}
       />
     </>
   );
