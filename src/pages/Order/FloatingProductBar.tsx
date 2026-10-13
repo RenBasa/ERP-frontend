@@ -1,4 +1,4 @@
-import { MenuItem, Skeleton, TextField, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { MenuItem, Skeleton, TextField, ToggleButton } from '@mui/material';
 import { FC, useMemo, useState } from 'react';
 import { quantityFromAmountHelper, totalHelper } from '../../utils/orderUtil';
 
@@ -124,20 +124,19 @@ const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onCle
 
               {/* Quantity controls */}
               <div className="flex flex-col gap-1 lg:col-span-3">
-                <ToggleButtonGroup
-                  value={inputMode}
-                  exclusive
+                {/* A single compact toggle, not a two-button group — this
+                    runs on small tablets and the labeled pair took up too
+                    much width for what it does. */}
+                <ToggleButton
+                  value="amount"
+                  selected={inputMode === 'amount'}
+                  onChange={() => setInputMode(inputMode === 'amount' ? 'quantity' : 'amount')}
                   size="small"
-                  onChange={(_e, next) => next && setInputMode(next)}
-                  aria-label="Modo de entrada"
+                  sx={{ alignSelf: 'flex-start', px: 1.5 }}
+                  aria-label="Cambiar a monto en pesos"
                 >
-                  <ToggleButton value="quantity" aria-label="Por cantidad">
-                    Cantidad
-                  </ToggleButton>
-                  <ToggleButton value="amount" aria-label="Por monto">
-                    $ Monto
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                  $
+                </ToggleButton>
 
                 {inputMode === 'quantity' ? (
                   <div className="flex items-center gap-2">

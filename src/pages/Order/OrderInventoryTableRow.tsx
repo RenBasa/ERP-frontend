@@ -2,7 +2,7 @@ import { Form, Formik } from 'formik';
 import { quantityFromAmountHelper, totalHelper } from '../../utils/orderUtil';
 import { FC, useState } from 'react';
 import { NumericFormat } from 'react-number-format';
-import { Button, MenuItem, TextField, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Button, MenuItem, TextField, ToggleButton } from '@mui/material';
 
 export interface OrderInventoryTableRow {
   product: Product;
@@ -55,26 +55,25 @@ const OrderInventoryTableRow: FC<OrderInventoryTableRow> = ({ product, onProduct
           return (
             <Form className="flex flex-row gap-6 w-full items-center">
               <div className="flex flex-col gap-1" style={{ minWidth: '140px' }}>
-                <ToggleButtonGroup
-                  value={inputMode}
-                  exclusive
+                {/* A single compact toggle, not a two-button group — this
+                    runs on small tablets and the labeled pair took up too
+                    much width for what it does. */}
+                <ToggleButton
+                  value="amount"
+                  selected={inputMode === 'amount'}
                   size="small"
-                  aria-label="Modo de entrada"
-                  onChange={(_e, next) => {
-                    if (!next) return;
+                  sx={{ alignSelf: 'flex-start', px: 1.5 }}
+                  aria-label="Cambiar a monto en pesos"
+                  onChange={() => {
+                    const next = inputMode === 'amount' ? 'quantity' : 'amount';
                     setInputMode(next);
                     if (next === 'amount') {
                       applyAmount(amount, props.values.price, props.values.unitId);
                     }
                   }}
                 >
-                  <ToggleButton value="quantity" aria-label="Por cantidad">
-                    Cant.
-                  </ToggleButton>
-                  <ToggleButton value="amount" aria-label="Por monto">
-                    $
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                  $
+                </ToggleButton>
 
                 {inputMode === 'quantity' ? (
                   <TextField
