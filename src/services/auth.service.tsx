@@ -9,8 +9,12 @@ export const login = async (username: string, password: string): Promise<loginRe
     const response = await axios.post(`${backend}/auth/login`, { username: username, password: password });
     return response.data;
   } catch (error) {
-    if (isAxiosError(error) && error.response) {
-      toast.error('401 Unauthorized');
+    if (isAxiosError(error) && error.response?.status === 401) {
+      toast.error('Usuario o contraseña incorrectos.');
+    } else {
+      // No response or a 5xx: the server is down or still waking up, not a
+      // bad password.
+      toast.error('No se pudo conectar con el servidor. Intenta de nuevo en un momento.');
     }
   }
 };
