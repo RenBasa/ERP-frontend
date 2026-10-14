@@ -23,6 +23,12 @@ export const quantityFromAmountHelper = (amount: number, price: number, unitId: 
   return amount / pricePerUnit;
 };
 
+// Money is stored as a float, so a total built from a peso amount can come
+// out as 1.9999999999999998 instead of 2. Round to cents before saving, so the
+// stored total matches the one on screen and paying it exactly isn't rejected
+// as exceeding the order total.
+export const roundToCents = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
+
 export const formatDate = (dateString: Date) => {
   const timeZone = 'America/Mexico_City';
   const date = new Date(dateString);

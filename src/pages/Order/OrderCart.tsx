@@ -10,6 +10,7 @@ import { createOrder } from '../../services/order.service';
 import { getClients } from '../../services/client.service';
 import { ChangeEvent, useRef, useState } from 'react';
 import CancelOrderModal from './CancelOrderModal';
+import { roundToCents } from '../../utils/orderUtil';
 
 const OrderCart = () => {
   // Hooks
@@ -51,7 +52,7 @@ const OrderCart = () => {
   const handleOnOrderSubmit = () => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
-    createOrderMutate(order);
+    createOrderMutate({ ...order, total: roundToCents(order.total) });
   };
 
   const handleClientChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
