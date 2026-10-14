@@ -84,7 +84,10 @@ const EditOrderModal: FC<EditOrderModalProps> = ({ open, order, onClose, onSucce
   // save, or for a different order, is never shown or saved under this one,
   // and a background refetch later on doesn't wipe edits in progress.
   const detailsLoaded =
-    !!orderDetailsQuery.data && orderDetailsQuery.data.id === order.id && !orderDetailsQuery.isFetching;
+    !!orderDetailsQuery.data &&
+    orderDetailsQuery.data.id === order.id &&
+    !orderDetailsQuery.isFetching &&
+    !orderDetailsQuery.isError;
   useEffect(() => {
     if (open && detailsLoaded && orderDetailsQuery.data && seededFor !== order.id) {
       setLines(orderDetailsQuery.data.orderDetails.map((d) => ({ ...d })));
@@ -267,6 +270,7 @@ const EditOrderModal: FC<EditOrderModalProps> = ({ open, order, onClose, onSucce
                       inputProps={{ min: 0, step: 'any' }}
                       value={line.quantity}
                       onChange={(e) => handleQuantityChange(index, Number(e.target.value))}
+                      disabled={isPending}
                       sx={{ width: '90px' }}
                     />
                   </TableCell>
@@ -282,7 +286,11 @@ const EditOrderModal: FC<EditOrderModalProps> = ({ open, order, onClose, onSucce
                     />
                   </TableCell>
                   <TableCell align="left">
-                    <IconButton aria-label="Quitar producto" onClick={() => handleRemoveLine(index)}>
+                    <IconButton
+                      aria-label="Quitar producto"
+                      onClick={() => handleRemoveLine(index)}
+                      disabled={isPending}
+                    >
                       <DeleteOutline />
                     </IconButton>
                   </TableCell>
@@ -309,7 +317,7 @@ const EditOrderModal: FC<EditOrderModalProps> = ({ open, order, onClose, onSucce
               value={addQuantity}
               onChange={(e) => setAddQuantity(Number(e.target.value) || 0)}
               sx={{ width: '110px' }}
-              disabled={!selectedProduct}
+              disabled={!selectedProduct || isPending}
             />
             <TextField
               select
@@ -317,7 +325,7 @@ const EditOrderModal: FC<EditOrderModalProps> = ({ open, order, onClose, onSucce
               value={addUnitId ?? ''}
               onChange={(e) => handleAddUnitChange(Number(e.target.value))}
               sx={{ minWidth: '120px' }}
-              disabled={!selectedProduct}
+              disabled={!selectedProduct || isPending}
             >
               {selectedProduct?.unit && (
                 <MenuItem value={selectedProduct.unit.id}>{selectedProduct.unit.name}</MenuItem>
@@ -331,7 +339,7 @@ const EditOrderModal: FC<EditOrderModalProps> = ({ open, order, onClose, onSucce
             <Button
               variant="outlined"
               onClick={handleAddLine}
-              disabled={!selectedProduct || !addUnitId || addQuantity <= 0}
+              disabled={!selectedProduct || !addUnitId || addQuantity <= 0 || isPending}
             >
               Agregar
             </Button>
