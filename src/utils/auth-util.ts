@@ -52,10 +52,21 @@ const syncAuthFromStorage = () => {
   );
 };
 
+// Store a new session by overwriting the keys in place. Clearing them first
+// would leave a moment with no token, and other open tabs reacting to that
+// moment would treat it as a logout and bounce the user back to /login.
+const saveSession = (session: { access_token: string; first_name: string; last_name: string; rol: string }) => {
+  localStorage.setItem('user_first_name', session.first_name);
+  localStorage.setItem('user_last_name', session.last_name);
+  localStorage.setItem('user_role', session.rol);
+  localStorage.setItem('access_token', session.access_token);
+  syncAuthFromStorage();
+};
+
 const logoutAuth = () => {
   AUTH_KEYS.forEach((key) => localStorage.removeItem(key));
   setAccessToken(undefined);
   setUserInformation({ firstName: undefined, lastName: undefined, role: undefined });
 };
 
-export { isLoggedIn, logoutAuth, isTokenValid, getStoredToken, getTokenUserId, syncAuthFromStorage };
+export { isLoggedIn, logoutAuth, saveSession, isTokenValid, getStoredToken, getTokenUserId, syncAuthFromStorage };
