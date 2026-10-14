@@ -1,8 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { authStore } from './auth-store';
 
 interface cartStoreState {
   order: Order;
+  // Id of the user the cart belongs to, so it is never carried over to
+  // someone else (see the auth subscription at the bottom).
+  ownerId?: number;
 }
 interface cartStoreActions {
   // createNewOrder: (name: string, location: string, wholesale: boolean) => void;
@@ -22,6 +26,7 @@ const initialState: cartStoreState = {
     clientId: 1,
     orderDetails: [],
   },
+  ownerId: undefined,
 };
 
 // sessionStorage (not localStorage): survives a reload within the same
@@ -106,3 +111,31 @@ export const useCartStore = create<cartStoreState & cartStoreActions>()(
     },
   ),
 );
+
+const userIdOf = (token: string | undefined): number | undefined => {
+  try {
+    return token ? JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).id : undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+// The cart survives reloads, so it must not survive a change of user: on any
+// logout (the Salir button, an expired or deactivated session, a logout in
+// another tab) or when a different user's session appears, it is emptied so
+// nobody can submit the previous user's items under their own name. A
+// renewed token for the same user keeps the cart.
+authStore.subscribe((state) => {
+  const userId = userIdOf(state.accessToken);
+  const { ownerId, reset } = useCartStore.getState();
+  if (userId === undefined) {
+    reset();
+    return;
+  }
+  if (ownerId !== undefined && ownerId !== userId) {
+    reset();
+  }
+  if (useCartStore.getState().ownerId !== userId) {
+    useCartStore.setState({ ownerId: userId });
+  }
+});
