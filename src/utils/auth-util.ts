@@ -63,10 +63,12 @@ const saveSession = (session: { access_token: string; first_name: string; last_n
   syncAuthFromStorage();
 };
 
+const isAdmin = () => localStorage.getItem('user_role') === 'admin';
+
 const logoutAuth = () => {
   AUTH_KEYS.forEach((key) => localStorage.removeItem(key));
   setAccessToken(undefined);
   setUserInformation({ firstName: undefined, lastName: undefined, role: undefined });
 };
 
-export { isLoggedIn, logoutAuth, saveSession, isTokenValid, getStoredToken, getTokenUserId, syncAuthFromStorage };
+export { isLoggedIn, logoutAuth, saveSession, isTokenValid, isAdmin, getStoredToken, getTokenUserId, syncAuthFromStorage };
