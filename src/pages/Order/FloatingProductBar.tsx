@@ -41,9 +41,11 @@ const FloatingProductBar: FC<FloatingProductBarProps> = ({ product, onAdd, onCle
 
   const total = useMemo(() => {
     if (!product || !selectedUnitId) return 0;
-    if (inputMode === 'amount') return amount;
-    return totalHelper(quantity, unitPrice, selectedUnitId, product);
-  }, [product, quantity, unitPrice, selectedUnitId, inputMode, amount]);
+    // In "Monto" mode show what will actually be charged: the total of the
+    // rounded quantity, which can differ from the amount by a few cents.
+    if (inputMode === 'amount' && effectiveQuantity <= 0) return 0;
+    return totalHelper(effectiveQuantity, unitPrice, selectedUnitId, product);
+  }, [product, effectiveQuantity, unitPrice, selectedUnitId, inputMode]);
 
   const handleDecrease = () => {
     setQuantity((q) => (q > 0 ? q - 1 : 0));
