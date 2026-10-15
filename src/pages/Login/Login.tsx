@@ -4,7 +4,7 @@ import { useFormik } from 'formik';
 import { useState } from 'react';
 import { login } from '../../services/auth.service';
 import { useNavigate } from 'react-router-dom';
-import { getActions } from '../../store/auth-store';
+import { saveSession } from '../../utils/auth-util';
 
 const boxStyle = {
   boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)', // Adjust the values to your preference
@@ -14,7 +14,6 @@ const boxStyle = {
 export const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigateTo = useNavigate();
-  const { setAccessToken, setUserInformation } = getActions();
 
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -22,16 +21,9 @@ export const Login: React.FC = () => {
   const onSubmit = async (values: { username: string; password: string }) => {
     const user = await login(values.username, values.password);
     if (user) {
-      setAccessToken(user.access_token);
-      setUserInformation({
-        firstName: user.first_name,
-        lastName: user.last_name,
-        role: user.rol,
-      });
-      localStorage.setItem('access_token', user.access_token);
-      localStorage.setItem('user_first_name', user.first_name);
-      localStorage.setItem('user_last_name', user.last_name);
-      localStorage.setItem('user_role', user.rol);
+      // Overwrites the previous user's session in place and loads the store
+      // from localStorage so both always agree.
+      saveSession(user);
 
       navigateTo('/');
     }

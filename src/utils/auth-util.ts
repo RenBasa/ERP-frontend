@@ -1,8 +1,10 @@
-import { getAccessToken, getActions } from '../store/auth-store';
+import { getActions } from '../store/auth-store';
 
 const { setAccessToken, setUserInformation } = getActions();
 
-const decodeJwtPayload = (token: string): { exp?: number } | null => {
+const AUTH_KEYS = ['access_token', 'user_first_name', 'user_last_name', 'user_role'];
+
+const decodeJwtPayload = (token: string): { id?: number; exp?: number } | null => {
   try {
     const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
     return JSON.parse(atob(base64));
@@ -18,18 +20,53 @@ const isTokenValid = (token: string | undefined | null): boolean => {
   return payload.exp * 1000 > Date.now();
 };
 
+// localStorage is the single source of truth for the session. It is shared by
+// every tab (and the home-screen shortcut) on the device, so reading it on
+// every request means a tab left open in the background can never keep
+// sending an older user's token after someone else logs in.
+const getStoredToken = () => localStorage.getItem('access_token') || undefined;
+
+const getTokenUserId = (token: string | undefined | null) => (token ? decodeJwtPayload(token)?.id : undefined);
+
+// Only checks that a well-formed token exists. Expiry is left to the backend
+// (a 401 logs the user out): comparing `exp` against the device clock kicked
+// people straight back to /login on tablets whose date was set wrong.
 const isLoggedIn = () => {
-  const accessToken = getAccessToken() || localStorage.getItem('access_token');
-  return isTokenValid(accessToken);
+  const token = getStoredToken();
+  return !!token && !!decodeJwtPayload(token);
+};
+
+// Copy whatever is in localStorage into the in-memory store. Called on start
+// up and whenever another tab changes the session.
+const syncAuthFromStorage = () => {
+  const token = getStoredToken();
+  setAccessToken(token);
+  setUserInformation(
+    token
+      ? {
+          firstName: localStorage.getItem('user_first_name') || undefined,
+          lastName: localStorage.getItem('user_last_name') || undefined,
+          role: localStorage.getItem('user_role') || undefined,
+        }
+      : { firstName: undefined, lastName: undefined, role: undefined },
+  );
+};
+
+// Store a new session by overwriting the keys in place. Clearing them first
+// would leave a moment with no token, and other open tabs reacting to that
+// moment would treat it as a logout and bounce the user back to /login.
+const saveSession = (session: { access_token: string; first_name: string; last_name: string; rol: string }) => {
+  localStorage.setItem('user_first_name', session.first_name);
+  localStorage.setItem('user_last_name', session.last_name);
+  localStorage.setItem('user_role', session.rol);
+  localStorage.setItem('access_token', session.access_token);
+  syncAuthFromStorage();
 };
 
 const logoutAuth = () => {
+  AUTH_KEYS.forEach((key) => localStorage.removeItem(key));
   setAccessToken(undefined);
-  setUserInformation(undefined);
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('user_first_name');
-  localStorage.removeItem('user_last_name');
-  localStorage.removeItem('user_role');
+  setUserInformation({ firstName: undefined, lastName: undefined, role: undefined });
 };
 
-export { isLoggedIn, logoutAuth, isTokenValid };
+export { isLoggedIn, logoutAuth, saveSession, isTokenValid, getStoredToken, getTokenUserId, syncAuthFromStorage };
